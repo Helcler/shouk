@@ -290,6 +290,7 @@ const AppMainNavigator = createSwitchNavigator({
 
 //export default createAppContainer(AppVerticalTabNavigator);
 //export default createAppContainer(AppMainTabNavigatorPreparation);
+//export default createAppContainer(AppMainTabNavigatorSupply);
 //export default createAppContainer(AppMainTabNavigatorDatasheet);
 //export default createAppContainer(AppMainVerticalTabNavigator);
 export default createAppContainer(AppMainNavigator);

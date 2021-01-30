@@ -19,7 +19,7 @@ component = props => {
     const [isPageLoading, setIsPageIsLoading] = useState(false);
     const [isPageRefreshing, setIsPageIsRefreshing] = useState(false);
     const [error, setError] = useState();
-    /* this funcition run aways when the companent is load. load Items from the db*/
+    /* this funcition run aways when the component is load. load Items from the db*/
 
     /* addListener para que sempre q a aba for aberta, recarregar os item*/
     useEffect(() => {

@@ -1,62 +1,38 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Button, Text, TouchableOpacity, FlatList, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import { ListItem, Avatar } from 'react-native-elements';
+import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 
-
-import ProductItem from "../../components/items/ProductItem";
-import PreparationItem from "../../components/preparation/PreparationItem";
-import DefaultText from '../../components/DefaultText';
-import ButtonHeader from "../../components/ButtonHeader";
-import Card from "../../components/UI/Card";
-import Colors from "../../constants/Colors";
-
 import * as preparationActions from "../../redux/actions/preparation";
+import * as preparationOrderActions from "../../redux/actions/preparationOrder";
+
+import ButtonHeader from "../../components/ButtonHeader";
+import Colors from "../../constants/Colors";
+import { event } from 'react-native-reanimated';
+import { isLoading } from 'expo-font';
+
 
 var component = 'ManagePreparationList';
 component = props => {
 
     const preparationTotalAmount = useSelector(state => state._preparation.totalAmount);
 
-    const items = useSelector(state => state._items.userItems);
-
-    //const updatedPrepItems = useSelector(state => state._preparation.items);
-    const product = 'p1';
-    //const details = useSelector(state => state._preparation.items.find(item => item.id === product))
-    const details = useSelector(state => state._preparation.items[product])
-    console.log(details);
-    const itemTransformed = useSelector(state => {
+    const initialItems = useSelector(state => {
         const data = [];
-        for (const i in state._items.userItems) {
-            data.push({
-                id: state._items.userItems[i].id,
-                title: state._items.userItems[i].title,
-                price: state._items.userItems[i].price,
-                quantity: state._items.userItems[i].quantity
-            });
-        }
-        return data;
-    });
-
-
-    const preparationItems = useSelector(state => {
-        const transformedPreparationItems = [];
         for (const i in state._preparation.items) {
-            transformedPreparationItems.push({
-                /*itemId: state._preparation.items[i].id,
-                itemTitle: state._preparation.items[i].title,
-                itemPrice: state._preparation.items[i].price,
-                quantity: state._preparation.items[i].quantity,
-                sum: state._preparation.items[i].sum*/
-
-                id: state._preparation.items[i].itemId,
+            data.push({
+                id: i,
                 title: state._preparation.items[i].title,
                 price: state._preparation.items[i].price,
                 quantity: state._preparation.items[i].quantity,
+                imageUrl: state._preparation.items[i].imageUrl,
                 sum: state._preparation.items[i].sum
             });
         }
-        return transformedPreparationItems.sort((a, b) => a.itemId > b.itemId ? 1 : -1);
+        //return data.sort((a, b) => a.itemId > b.itemId ? 1 : -1);
+        return data;
     });
 
     const [isPageLoading, setIsPageIsLoading] = useState(false);
@@ -86,6 +62,15 @@ component = props => {
     }, [dispatch], loadItems);
 
 
+    /* addListener para que sempre q a aba for aberta, recarregar os item*/
+    useEffect(() => {
+        const willFocusSub = props.navigation.addListener('willFocus', loadItems);
+
+        return () => {
+            willFocusSub.remove();
+        }
+    }, [loadItems]);
+
     /*Buttons Functions*/
     const selectItemHandler = (id, title) => {
         props.navigation.navigate('ItemDetail', {
@@ -96,87 +81,107 @@ component = props => {
     /* addListener para que sempre q a aba for aberta, recarregar os item*/
     useEffect(() => {
         const willFocusSub = props.navigation.addListener('willFocus', loadItems);
+        props.navigation.setParams({ submit: sendPreparationOrderHandler });
 
         return () => {
             willFocusSub.remove();
         }
-    }, [loadItems]);
+    }, [loadItems, sendPreparationOrderHandler]);
 
     /* Meu Teste*/
 
+    /*Buttons action*/
+    const AddItemtHandler = (evt, itemData) => {
+        dispatch(preparationActions.addToPreparation(itemData));
+    }
 
-    return (
+    const sendPreparationOrderHandler = async () => {
+        setIsPageIsLoading(true);
+        let selectedPreparationItems = initialItems.filter(function (e) {
+            return e.sum > 0;
+        });
+        await dispatch(preparationOrderActions.addPreparation(selectedPreparationItems, preparationTotalAmount));
+        setIsPageIsLoading(false);
+        props.navigation.goBack();
+    }
 
-        <View style={styles.screen}>
-            <View style={styles.sumary}>
-                <Text style={styles.sumaryText}>Total:
-                <Text style={styles.amount}>${preparationTotalAmount.toFixed(2)}</Text></Text>
-                <Button
-                    color={Colors.accentColor}
-                    title="Save now"
-                    disabled={preparationItems.length === 0}
-                />
-            </View>
-            <View>
-                <FlatList
-                    data={itemTransformed}
-                    keyExtractor={item => item.id}
-                    renderItem={itemData => (
-                        <PreparationItem
-                            quantity={itemData.item.quantity}
-                            title={itemData.item.title}
-                            amount={itemData.item.price}
-                            onAdd={() => { 
-                                dispatch(preparationActions.addToPreparation(itemData.item));
-                            }}
-                            onRemove={() => { 
+
+    /*useEffect(() => {
+        props.navigation.setParams({ submit: sendPreparationOrderHandler })
+    }, [sendPreparationOrderHandler]);*/
+
+    const renderItemTransformed = (itemData) => {
+        return (
+
+            <View style={styles.preparationItem}>
+                <ListItem bottomDivider>
+                    <Avatar source={{ uri: itemData.item.imageUrl }} />
+                    <ListItem.Content>
+                        <ListItem.Title>{itemData.item.title}</ListItem.Title>
+                        <ListItem.Subtitle>{itemData.item.price}</ListItem.Subtitle>
+                    </ListItem.Content>
+                    <ListItem.Content>
+                        <ListItem.Title style={styles.quantity}>{itemData.item.quantity}</ListItem.Title>
+                    </ListItem.Content>
+                    <View style={styles.itemData}>
+                        <TouchableOpacity
+                            onPress={() => {
                                 dispatch(preparationActions.removeFromPreparation(itemData.item.id));
                             }}
-                        />
-                    )}
-                />
+                            style={styles.deleteButton}>
+                            <Ionicons
+                                name={'ios-remove'}
+                                size={23}
+                                color={Colors.accentColor}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                AddItemtHandler(event, itemData.item)
+                            }}
+                            style={styles.deleteButton}>
+                            <Ionicons
+                                name={'ios-add'}
+                                size={23}
+                                color={Colors.accentColor}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                </ListItem>
             </View>
+        );
+    }
+
+    return (
+        <View>
+            <View style={styles.screen}>
+                <View style={styles.sumary}>
+                    <Text style={styles.sumaryText}>Total:
+                        <Text style={styles.amount}>${preparationTotalAmount.toFixed(2)}</Text></Text>
+                    {isPageLoading ? <ActivityIndicator size='small' color={Colors.primaryColor} /> :
+                        <Button
+                            color={Colors.accentColor}
+                            title="Save now"
+                            disabled={!initialItems.find(item => item.sum > 0)}
+                            onPress={sendPreparationOrderHandler}
+
+                        />}
+                </View>
+            </View>
+            <FlatList
+                keyExtractor={(item, index) => item.id}
+                data={initialItems}
+                renderItem={renderItemTransformed}
+                numColumns={1}
+            />
         </View>
-
-
-        /*
-        <FlatList
-        onRefresh={loadItems}
-        refreshing={isPageRefreshing}
-        data={items}
-        keyExtractor={item => item.id}
-        renderItem={itemData => (
-            <ProductItem
-                image={itemData.item.imageUrl}
-                title={itemData.item.title}
-                price={itemData.item.price}
-                onSelect={() => {
-                    selectItemHandler(itemData.item.id, itemData.item.title)
-                }}>
-                <Button
-                    color={Colors.primaryColor}
-                    title="View Details"
-                    onPress={() => {
-                        selectItemHandler(itemData.item.id, itemData.item.title)
-                    }}
-                />
-                <Button
-                    color={Colors.primaryColor}
-                    title="Add to List"
-                    onPress={() => {
-                        dispatch(preparationActions.addToPreparation(itemData.item));
-                    }}
-                />
-            </ProductItem>
-        )}
-    />
-    */
     );
 }
 
 /*Custom Header Title*/
 component.navigationOptions = (navigationData) => {
-    //const submitFn = navigationData.navigation.getParam('submit');
+    const submitFn = navigationData.navigation.getParam('submit');
 
     return {
         //headerTitle: navigationData.navigation.getParam('itemId') ? 'Edit Product' : 'Add Product',
@@ -186,9 +191,7 @@ component.navigationOptions = (navigationData) => {
                 <Item
                     title='Save'
                     iconName='ios-checkmark'
-                    onPress={() => {
-                        navigationData.navigation.navigate('Preparation');
-                    }}
+                    onPress={submitFn}
                 />
             </HeaderButtons>
         )
@@ -224,6 +227,31 @@ const styles = StyleSheet.create({
     },
     amount: {
         color: Colors.accentColor
+    },
+    preparationItem: {
+        justifyContent: 'space-between',
+        marginHorizontal: 10
+    },
+    itemData: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    deleteButton: {
+        flexDirection: 'row',
+        marginLeft: 35
+    },
+    subtitleView: {
+        flexDirection: 'row',
+        paddingLeft: 10,
+        paddingTop: 5
+    },
+    ratingImage: {
+        height: 19.21,
+        width: 100
+    },
+    ratingText: {
+        paddingLeft: 10,
+        color: 'grey'
     }
 });
 export default component;

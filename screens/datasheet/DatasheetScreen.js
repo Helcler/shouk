@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
-import { Button, ListItem, Icon, Avatar } from 'react-native-elements';
+import { ListItem, Icon } from 'react-native-elements';
+
 
 import ButtonHeader from "../../components/ButtonHeader";
 
@@ -62,6 +63,7 @@ component = props => {
             </TouchableOpacity>
         );
     }
+
     return (
         <View>
             <FlatList

@@ -1,18 +1,6 @@
-/*export const ADD_TO_PREPARATION = 'ADD_TO_PREPARATION';
-export const REMOVE_FROM_PREPARATION = 'REMOVE_FROM_PREPARATION';
-
-
-export const addToPreparation = item => {
-    return {type: ADD_TO_PREPARATION, item: item};
-};
-
-export const removeFromPreparation = id => {
-    return {type: REMOVE_FROM_PREPARATION, itemId: id};
-}*/
-
-export const ADD_TO_PREPARATION = 'ADD_TO_PREPARATION';
-export const REMOVE_FROM_PREPARATION = 'REMOVE_FROM_PREPARATION';
-export const REQUEST_PREP_ITEMS = 'REQUEST_PREP_ITEMS';
+export const ADD_TO_SUPPLY_ORDER = 'ADD_TO_SUPPLY_ORDER';
+export const REMOVE_FROM_SUPPLY_ORDER = 'REMOVE_FROM_SUPPLY_ORDER';
+export const REQUEST_ORDER_ITEMS = 'REQUEST_ORDER_ITEMS';
 
 /*REQUEST LIST OF ITEMS FOR PREPARATION*/
 export const fetchItems = () => {
@@ -40,7 +28,7 @@ export const fetchItems = () => {
                 );
             }
             //console.log(data);
-            dispatch({ type: REQUEST_PREP_ITEMS, items: items, ownerId: ownerId });
+            dispatch({ type: REQUEST_ORDER_ITEMS, items: items, ownerId: ownerId });
         } catch (error) {
             //send to custm analytics server
             throw error;
@@ -48,11 +36,11 @@ export const fetchItems = () => {
     }
 }
 
-export const addToPreparation = item => {
-    return {type: ADD_TO_PREPARATION, item: item};
+export const addToSupplyOrder = item => {
+    return {type: ADD_TO_SUPPLY_ORDER, item: item};
 };
 
-export const removeFromPreparation = id => {
-    return {type: REMOVE_FROM_PREPARATION, itemId: id};
+export const removeFromSupplyOrder = id => {
+    return {type: REMOVE_FROM_SUPPLY_ORDER, itemId: id};
 }
 

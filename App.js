@@ -11,6 +11,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import recipesReducer from './redux/reducers/recipes';
 import preparationReducer from './redux/reducers/preparation';
+import preparationOrderReducer from './redux/reducers/preparationOrder';
+import supplyItemReducer from './redux/reducers/supply/supplyItem';
+import supplyOrderReducer from './redux/reducers/supply/supplyOrder';
 import itemsReducer from './redux/reducers/items';
 import authReducer from './redux/reducers/auth';
 
@@ -21,6 +24,9 @@ import NavigationContainer from './navigation/NavigationContainer';
 const rootReducer = combineReducers({
   _recipes: recipesReducer,
   _preparation: preparationReducer,
+  _preparationOrder: preparationOrderReducer,
+  _supplyItem: supplyItemReducer,
+  _supplyOrder: supplyOrderReducer,
   _items: itemsReducer,
   _auth: authReducer
 });
